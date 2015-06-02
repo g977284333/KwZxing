@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import android.annotation.TargetApi;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
@@ -36,6 +37,7 @@ import android.util.Log;
  * 
  * @author Sean Owen
  */
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
 @SuppressWarnings("deprecation")
 public final class CameraConfigurationUtils {
 
@@ -263,7 +265,7 @@ public final class CameraConfigurationUtils {
 		}
 
 		// Sort by size, descending
-		List<Camera.Size> supportedPreviewSizes = new ArrayList<Size>(rawSupportedSizes);
+		List<Camera.Size> supportedPreviewSizes = new ArrayList<>(rawSupportedSizes);
 		Collections.sort(supportedPreviewSizes, new Comparator<Camera.Size>() {
 			@Override
 			public int compare(Camera.Size a, Camera.Size b) {

@@ -3,6 +3,7 @@ package com.kw_support.zxing.camera;
 import android.content.Context;
 import android.graphics.Point;
 import android.hardware.Camera;
+import android.os.Build;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
@@ -67,14 +68,16 @@ final class CameraConfigurationManager {
 				CameraConfigurationUtils.setInvertColor(parameters);
 			}
 
-			if (ZXingConfig.DISABLE_BARCODE_SCENE_MODE) {
+			if (!ZXingConfig.DISABLE_BARCODE_SCENE_MODE) {
 				CameraConfigurationUtils.setBarcodeSceneMode(parameters);
 			}
 
 			if (!ZXingConfig.DISABLE_METERING) {
-				CameraConfigurationUtils.setVideoStabilization(parameters);
-				CameraConfigurationUtils.setFocusArea(parameters);
-				CameraConfigurationUtils.setMetering(parameters);
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
+					CameraConfigurationUtils.setVideoStabilization(parameters);
+					CameraConfigurationUtils.setFocusArea(parameters);
+					CameraConfigurationUtils.setMetering(parameters);
+				}
 			}
 
 		}
@@ -119,22 +122,12 @@ final class CameraConfigurationManager {
 		camera.setParameters(parameters);
 	}
 
-	// private void initializeTorch(Camera.Parameters parameters,
-	// SharedPreferences prefs, boolean safeMode) {
-	// boolean currentSetting = FrontLightMode.readPref(prefs) ==
-	// FrontLightMode.ON;
-	// doSetTorch(parameters, currentSetting, safeMode);
-	// }
-
+	@SuppressWarnings("unused")
 	private void doSetTorch(Camera.Parameters parameters, boolean newSetting, boolean safeMode) {
 		CameraConfigurationUtils.setTorch(parameters, newSetting);
-		// SharedPreferences prefs =
-		// PreferenceManager.getDefaultSharedPreferences(context);
-		// if (!safeMode &&
-		// !prefs.getBoolean(CameraConfigurationUtils.KEY_DISABLE_EXPOSURE,
-		// true)) {
-		CameraConfigurationUtils.setBestExposure(parameters, newSetting);
-		// }
+		 if (!safeMode && !ZXingConfig.DISABLE_EXPOSURE) {
+			 CameraConfigurationUtils.setBestExposure(parameters, newSetting);
+		 }
 	}
 
 }

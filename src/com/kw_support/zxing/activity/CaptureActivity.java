@@ -103,7 +103,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 		beepManager = new BeepManager(this);
 		ambientLightManager = new AmbientLightManager(this);
 
-		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+//		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
 		Intent intent = getIntent();
 
-		copyToClipboard = ZXingConfig.COPY_TO_CLIPBOARD && (intent == null || intent.getBooleanExtra(Intents.Scan.SAVE_HISTORY, true));
+//		copyToClipboard = ZXingConfig.COPY_TO_CLIPBOARD && (intent == null || intent.getBooleanExtra(Intents.Scan.SAVE_HISTORY, true));
 
 		decodeFormats = null;
 		characterSet = null;
