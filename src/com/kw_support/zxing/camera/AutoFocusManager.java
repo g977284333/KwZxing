@@ -11,7 +11,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
-@SuppressWarnings("deprecation")
 final class AutoFocusManager implements Camera.AutoFocusCallback {
 
 	private static final String TAG = AutoFocusManager.class.getSimpleName();
@@ -34,7 +33,8 @@ final class AutoFocusManager implements Camera.AutoFocusCallback {
 		this.camera = camera;
 		String currentFocusMode = camera.getParameters().getFocusMode();
 		useAutoFocus = FOCUS_MODES_CALLING_AF.contains(currentFocusMode);
-		Log.i(TAG, "Current focus mode '" + currentFocusMode + "'; use auto focus? " + useAutoFocus);
+		Log.i(TAG, "Current focus mode '" + currentFocusMode
+				+ "'; use auto focus? " + useAutoFocus);
 		start();
 	}
 

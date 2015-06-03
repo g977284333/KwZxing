@@ -32,17 +32,20 @@ public final class AmbientLightManager implements SensorEventListener {
 	public void start(CameraManager cameraManager) {
 		this.cameraManager = cameraManager;
 		if (ZXingConfig.FLIGHT_MODE.equals(ZXingConfig.FlightMode.AUTO)) {
-			SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+			SensorManager sensorManager = (SensorManager) context
+					.getSystemService(Context.SENSOR_SERVICE);
 			lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
 			if (lightSensor != null) {
-				sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+				sensorManager.registerListener(this, lightSensor,
+						SensorManager.SENSOR_DELAY_NORMAL);
 			}
 		}
 	}
 
 	public void stop() {
 		if (lightSensor != null) {
-			SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+			SensorManager sensorManager = (SensorManager) context
+					.getSystemService(Context.SENSOR_SERVICE);
 			sensorManager.unregisterListener(this);
 			cameraManager = null;
 			lightSensor = null;

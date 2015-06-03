@@ -6,7 +6,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-@SuppressWarnings("deprecation")
 final class PreviewCallback implements Camera.PreviewCallback {
 
 	private static final String TAG = PreviewCallback.class.getSimpleName();
@@ -29,11 +28,13 @@ final class PreviewCallback implements Camera.PreviewCallback {
 		Point cameraResolution = configManager.getCameraResolution();
 		Handler thePreviewHandler = previewHandler;
 		if (cameraResolution != null && thePreviewHandler != null) {
-			Message message = thePreviewHandler.obtainMessage(previewMessage, cameraResolution.x, cameraResolution.y, data);
+			Message message = thePreviewHandler.obtainMessage(previewMessage,
+					cameraResolution.x, cameraResolution.y, data);
 			message.sendToTarget();
 			previewHandler = null;
 		} else {
-			Log.d(TAG, "Got preview callback, but no handler or resolution available");
+			Log.d(TAG,
+					"Got preview callback, but no handler or resolution available");
 		}
 	}
 

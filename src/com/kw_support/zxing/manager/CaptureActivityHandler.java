@@ -34,7 +34,8 @@ import com.kw_support.zxing.interfaces.ViewfinderResultPointCallback;
  */
 public final class CaptureActivityHandler extends Handler {
 
-	private static final String TAG = CaptureActivityHandler.class.getSimpleName();
+	private static final String TAG = CaptureActivityHandler.class
+			.getSimpleName();
 
 	private final CaptureActivity activity;
 	private final DecodeThread decodeThread;
@@ -45,9 +46,14 @@ public final class CaptureActivityHandler extends Handler {
 		PREVIEW, SUCCESS, DONE
 	}
 
-	public CaptureActivityHandler(CaptureActivity activity, Collection<BarcodeFormat> decodeFormats, Map<DecodeHintType, ?> baseHints, String characterSet, CameraManager cameraManager) {
+	public CaptureActivityHandler(CaptureActivity activity,
+			Collection<BarcodeFormat> decodeFormats,
+			Map<DecodeHintType, ?> baseHints, String characterSet,
+			CameraManager cameraManager) {
 		this.activity = activity;
-		decodeThread = new DecodeThread(activity, decodeFormats, baseHints, characterSet, new ViewfinderResultPointCallback(activity.getViewfinderView()));
+		decodeThread = new DecodeThread(activity, decodeFormats, baseHints,
+				characterSet, new ViewfinderResultPointCallback(
+						activity.getViewfinderView()));
 		decodeThread.start();
 		state = State.SUCCESS;
 
@@ -57,7 +63,6 @@ public final class CaptureActivityHandler extends Handler {
 		restartPreviewAndDecode();
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void handleMessage(Message message) {
 		switch (message.what) {
@@ -70,13 +75,16 @@ public final class CaptureActivityHandler extends Handler {
 			Bitmap barcode = null;
 			float scaleFactor = 1.0f;
 			if (bundle != null) {
-				byte[] compressedBitmap = bundle.getByteArray(DecodeThread.BARCODE_BITMAP);
+				byte[] compressedBitmap = bundle
+						.getByteArray(DecodeThread.BARCODE_BITMAP);
 				if (compressedBitmap != null) {
-					barcode = BitmapFactory.decodeByteArray(compressedBitmap, 0, compressedBitmap.length, null);
+					barcode = BitmapFactory.decodeByteArray(compressedBitmap,
+							0, compressedBitmap.length, null);
 					// Mutable copy:
 					barcode = barcode.copy(Bitmap.Config.ARGB_8888, true);
 				}
-				scaleFactor = bundle.getFloat(DecodeThread.BARCODE_SCALED_FACTOR);
+				scaleFactor = bundle
+						.getFloat(DecodeThread.BARCODE_SCALED_FACTOR);
 			}
 			activity.handleDecode((Result) message.obj, barcode, scaleFactor);
 			break;
@@ -84,7 +92,8 @@ public final class CaptureActivityHandler extends Handler {
 			// We're decoding as fast as possible, so when one decode fails,
 			// start another.
 			state = State.PREVIEW;
-			cameraManager.requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
+			cameraManager.requestPreviewFrame(decodeThread.getHandler(),
+					R.id.decode);
 			break;
 		case R.id.return_scan_result:
 			activity.setResult(Activity.RESULT_OK, (Intent) message.obj);
@@ -97,7 +106,8 @@ public final class CaptureActivityHandler extends Handler {
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 			intent.setData(Uri.parse(url));
 
-			ResolveInfo resolveInfo = activity.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+			ResolveInfo resolveInfo = activity.getPackageManager()
+					.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
 			String browserPackageName = null;
 			if (resolveInfo != null && resolveInfo.activityInfo != null) {
 				browserPackageName = resolveInfo.activityInfo.packageName;
@@ -105,10 +115,12 @@ public final class CaptureActivityHandler extends Handler {
 			}
 
 			// Needed for default Android browser / Chrome only apparently
-			if ("com.android.browser".equals(browserPackageName) || "com.android.chrome".equals(browserPackageName)) {
+			if ("com.android.browser".equals(browserPackageName)
+					|| "com.android.chrome".equals(browserPackageName)) {
 				intent.setPackage(browserPackageName);
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				intent.putExtra(Browser.EXTRA_APPLICATION_ID, browserPackageName);
+				intent.putExtra(Browser.EXTRA_APPLICATION_ID,
+						browserPackageName);
 			}
 
 			try {
@@ -141,7 +153,8 @@ public final class CaptureActivityHandler extends Handler {
 	private void restartPreviewAndDecode() {
 		if (state == State.SUCCESS) {
 			state = State.PREVIEW;
-			cameraManager.requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
+			cameraManager.requestPreviewFrame(decodeThread.getHandler(),
+					R.id.decode);
 			activity.drawViewfinder();
 		}
 	}

@@ -31,7 +31,10 @@ public final class DecodeThread extends Thread {
 	private Handler handler;
 	private final CountDownLatch handlerInitLatch;
 
-	public DecodeThread(CaptureActivity activity, Collection<BarcodeFormat> decodeFormats, Map<DecodeHintType, ?> baseHints, String characterSet, ResultPointCallback resultPointCallback) {
+	public DecodeThread(CaptureActivity activity,
+			Collection<BarcodeFormat> decodeFormats,
+			Map<DecodeHintType, ?> baseHints, String characterSet,
+			ResultPointCallback resultPointCallback) {
 
 		this.activity = activity;
 		handlerInitLatch = new CountDownLatch(1);
@@ -69,7 +72,8 @@ public final class DecodeThread extends Thread {
 		if (characterSet != null) {
 			hints.put(DecodeHintType.CHARACTER_SET, characterSet);
 		}
-		hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, resultPointCallback);
+		hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK,
+				resultPointCallback);
 		Log.i("DecodeThread", "Hints: " + hints);
 	}
 

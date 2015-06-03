@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2010 ZXing authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.kw_support.zxing.manager;
 
 import android.annotation.SuppressLint;
@@ -49,7 +33,7 @@ public final class InactivityTimer {
 		onActivity();
 	}
 
-	synchronized void onActivity() {
+	public synchronized void onActivity() {
 		cancel();
 		inactivityTask = new InactivityAsyncTask();
 		inactivityTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -69,7 +53,8 @@ public final class InactivityTimer {
 		if (registered) {
 			Log.w(TAG, "PowerStatusReceiver was already registered?");
 		} else {
-			activity.registerReceiver(powerStatusReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+			activity.registerReceiver(powerStatusReceiver, new IntentFilter(
+					Intent.ACTION_BATTERY_CHANGED));
 			registered = true;
 		}
 		onActivity();
@@ -92,7 +77,8 @@ public final class InactivityTimer {
 		public void onReceive(Context context, Intent intent) {
 			if (Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())) {
 				// 0 indicates that we're on battery
-				boolean onBatteryNow = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) <= 0;
+				boolean onBatteryNow = intent.getIntExtra(
+						BatteryManager.EXTRA_PLUGGED, -1) <= 0;
 				if (onBatteryNow) {
 					InactivityTimer.this.onActivity();
 				} else {
@@ -102,7 +88,8 @@ public final class InactivityTimer {
 		}
 	}
 
-	private final class InactivityAsyncTask extends AsyncTask<Object, Object, Object> {
+	private final class InactivityAsyncTask extends
+			AsyncTask<Object, Object, Object> {
 		@Override
 		protected Object doInBackground(Object... objects) {
 			try {

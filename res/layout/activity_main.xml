@@ -7,8 +7,8 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:onClick="skipToCaptureActivity"
         android:text="CaptureActivity"
-        android:textSize="16sp"
-        android:onClick="skipToCaptureActivity"/>
+        android:textSize="16sp" />
 
 </RelativeLayout>
