@@ -111,7 +111,7 @@ public final class CaptureActivity extends Activity implements
 		if (ZXingConfig.DISABLE_AUTO_ORIENTATION) {
 			setRequestedOrientation(getCurrentOrientation());
 		} else {
-			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
 		}
 
 		resetStatusView();

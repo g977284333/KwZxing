@@ -24,7 +24,10 @@ public final class R {
         public static final int result_view=0x7f050006;
         public static final int status_text=0x7f050007;
         public static final int transparent=0x7f050008;
+        public static final int viewfinder_corner=0x7f05000b;
         public static final int viewfinder_laser=0x7f050009;
+        public static final int viewfinder_main_line=0x7f05000c;
+        public static final int viewfinder_main_line_edge=0x7f05000d;
         /**  Android standard ICS color 
          */
         public static final int viewfinder_mask=0x7f05000a;
@@ -67,17 +70,20 @@ public final class R {
     public static final class string {
         public static final int app_name=0x7f080000;
         public static final int button_ok=0x7f080002;
+        public static final int dimension_content=0x7f080003;
         public static final int msg_camera_framework_bug=0x7f080001;
     }
     public static final class style {
         /** 
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+
     
 
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
             backward-compatibility can go here.
+
         
 
         Base application theme for API 11+. This theme completely replaces

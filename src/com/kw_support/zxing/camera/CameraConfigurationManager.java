@@ -1,5 +1,7 @@
 package com.kw_support.zxing.camera;
 
+import java.lang.reflect.Method;
+
 import android.content.Context;
 import android.graphics.Point;
 import android.hardware.Camera;
@@ -39,8 +41,17 @@ final class CameraConfigurationManager {
 				display.getHeight());
 		screenResolution = theScreenResolution;
 		Log.i(TAG, "Screen resolution: " + screenResolution);
+		Point screenResolutionForCamra = new Point();
+		screenResolutionForCamra.x = screenResolution.x;
+		screenResolutionForCamra.y = screenResolution.y;
+		
+		if(screenResolution.x < screenResolution.y) {
+			screenResolutionForCamra.x = screenResolution.y;
+			screenResolutionForCamra.y = screenResolution.x;
+		}
+		
 		cameraResolution = CameraConfigurationUtils.findBestPreviewSizeValue(
-				parameters, screenResolution);
+				parameters, screenResolutionForCamra);
 		Log.i(TAG, "Camera resolution: " + cameraResolution);
 	}
 
@@ -60,10 +71,6 @@ final class CameraConfigurationManager {
 					"In camera config safe mode -- most settings will not be honored");
 		}
 
-		// SharedPreferences prefs =
-		// PreferenceManager.getDefaultSharedPreferences(context);
-
-		// false 不开启闪光灯
 		doSetTorch(parameters, ZXingConfig.FLASH_LIGHT, safeMode);
 
 		CameraConfigurationUtils.setFocus(parameters, ZXingConfig.AUTO_FOCUS,
@@ -91,7 +98,8 @@ final class CameraConfigurationManager {
 		parameters.setPreviewSize(cameraResolution.x, cameraResolution.y);
 
 		Log.i(TAG, "Final camera parameters: " + parameters.flatten());
-
+		
+		setDisplayOrientation(camera, 90);
 		camera.setParameters(parameters);
 
 		Camera.Parameters afterParameters = camera.getParameters();
@@ -140,6 +148,22 @@ final class CameraConfigurationManager {
 		CameraConfigurationUtils.setTorch(parameters, newSetting);
 		if (!safeMode && !ZXingConfig.DISABLE_EXPOSURE) {
 			CameraConfigurationUtils.setBestExposure(parameters, newSetting);
+		}
+	}
+	
+	/**
+	 * compatible 1.6
+	 * 
+	 * @param camera
+	 * @param angle
+	 */
+	protected void setDisplayOrientation(Camera camera, int angle) {
+		Method downPolymorphic;
+		try {
+			downPolymorphic = camera.getClass().getMethod("setDisplayOrientation", new Class[] { int.class });
+			if (downPolymorphic != null)
+				downPolymorphic.invoke(camera, new Object[] { angle });
+		} catch (Exception e1) {
 		}
 	}
 
