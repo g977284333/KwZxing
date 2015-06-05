@@ -21,45 +21,45 @@ public final class AmbientLightManager implements SensorEventListener {
 	private static final float TOO_DARK_LUX = 45.0f;
 	private static final float BRIGHT_ENOUGH_LUX = 450.0f;
 
-	private final Context context;
-	private CameraManager cameraManager;
-	private Sensor lightSensor;
+	private final Context mContext;
+	
+	private CameraManager mCameraManager;
+	
+	private Sensor mLightSensor;
 
 	public AmbientLightManager(Context context) {
-		this.context = context;
+		this.mContext = context;
 	}
 
 	public void start(CameraManager cameraManager) {
-		this.cameraManager = cameraManager;
+		this.mCameraManager = cameraManager;
+		
 		if (ZXingConfig.FLIGHT_MODE.equals(ZXingConfig.FlightMode.AUTO)) {
-			SensorManager sensorManager = (SensorManager) context
-					.getSystemService(Context.SENSOR_SERVICE);
-			lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-			if (lightSensor != null) {
-				sensorManager.registerListener(this, lightSensor,
-						SensorManager.SENSOR_DELAY_NORMAL);
+			SensorManager sensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+			mLightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+			if (mLightSensor != null) {
+				sensorManager.registerListener(this, mLightSensor, SensorManager.SENSOR_DELAY_NORMAL);
 			}
 		}
 	}
 
 	public void stop() {
-		if (lightSensor != null) {
-			SensorManager sensorManager = (SensorManager) context
-					.getSystemService(Context.SENSOR_SERVICE);
+		if (mLightSensor != null) {
+			SensorManager sensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
 			sensorManager.unregisterListener(this);
-			cameraManager = null;
-			lightSensor = null;
+			mCameraManager = null;
+			mLightSensor = null;
 		}
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
 		float ambientLightLux = sensorEvent.values[0];
-		if (cameraManager != null) {
+		if (mCameraManager != null) {
 			if (ambientLightLux <= TOO_DARK_LUX) {
-				cameraManager.setTorch(true);
+				mCameraManager.setTorch(true);
 			} else if (ambientLightLux >= BRIGHT_ENOUGH_LUX) {
-				cameraManager.setTorch(false);
+				mCameraManager.setTorch(false);
 			}
 		}
 	}

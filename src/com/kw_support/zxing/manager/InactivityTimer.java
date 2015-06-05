@@ -16,55 +16,55 @@ import android.util.Log;
  */
 @SuppressLint("NewApi")
 public final class InactivityTimer {
-
 	private static final String TAG = InactivityTimer.class.getSimpleName();
 
 	private static final long INACTIVITY_DELAY_MS = 5 * 60 * 1000L;
 
-	private final Activity activity;
-	private final BroadcastReceiver powerStatusReceiver;
-	private boolean registered;
-	private AsyncTask<Object, Object, Object> inactivityTask;
+	private final Activity mActivity;
+	private final BroadcastReceiver mPowerStatusReceiver;
+	private boolean mRegistered;
+	private AsyncTask<Object, Object, Object> mInactivityTask;
 
 	public InactivityTimer(Activity activity) {
-		this.activity = activity;
-		powerStatusReceiver = new PowerStatusReceiver();
-		registered = false;
+		this.mActivity = activity;
+		mPowerStatusReceiver = new PowerStatusReceiver();
+		mRegistered = false;
 		onActivity();
 	}
 
 	public synchronized void onActivity() {
 		cancel();
-		inactivityTask = new InactivityAsyncTask();
-		inactivityTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		mInactivityTask = new InactivityAsyncTask();
+		mInactivityTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 	}
 
 	public synchronized void onPause() {
 		cancel();
-		if (registered) {
-			activity.unregisterReceiver(powerStatusReceiver);
-			registered = false;
+		
+		if (mRegistered) {
+			mActivity.unregisterReceiver(mPowerStatusReceiver);
+			mRegistered = false;
 		} else {
 			Log.w(TAG, "PowerStatusReceiver was never registered?");
 		}
 	}
 
 	public synchronized void onResume() {
-		if (registered) {
+		if (mRegistered) {
 			Log.w(TAG, "PowerStatusReceiver was already registered?");
 		} else {
-			activity.registerReceiver(powerStatusReceiver, new IntentFilter(
-					Intent.ACTION_BATTERY_CHANGED));
-			registered = true;
+			mActivity.registerReceiver(mPowerStatusReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+			mRegistered = true;
 		}
 		onActivity();
 	}
 
 	private synchronized void cancel() {
-		AsyncTask<?, ?, ?> task = inactivityTask;
+		AsyncTask<?, ?, ?> task = mInactivityTask;
+		
 		if (task != null) {
 			task.cancel(true);
-			inactivityTask = null;
+			mInactivityTask = null;
 		}
 	}
 
@@ -77,8 +77,7 @@ public final class InactivityTimer {
 		public void onReceive(Context context, Intent intent) {
 			if (Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())) {
 				// 0 indicates that we're on battery
-				boolean onBatteryNow = intent.getIntExtra(
-						BatteryManager.EXTRA_PLUGGED, -1) <= 0;
+				boolean onBatteryNow = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) <= 0;
 				if (onBatteryNow) {
 					InactivityTimer.this.onActivity();
 				} else {
@@ -88,14 +87,13 @@ public final class InactivityTimer {
 		}
 	}
 
-	private final class InactivityAsyncTask extends
-			AsyncTask<Object, Object, Object> {
+	private final class InactivityAsyncTask extends AsyncTask<Object, Object, Object> {
 		@Override
 		protected Object doInBackground(Object... objects) {
 			try {
 				Thread.sleep(INACTIVITY_DELAY_MS);
 				Log.i(TAG, "Finishing activity due to inactivity");
-				activity.finish();
+				mActivity.finish();
 			} catch (InterruptedException e) {
 				// continue without killing
 			}

@@ -33,32 +33,28 @@ import com.kw_support.zxing.interfaces.ViewfinderResultPointCallback;
  * @author dswitkin@google.com (Daniel Switkin)
  */
 public final class CaptureActivityHandler extends Handler {
+	private static final String TAG = CaptureActivityHandler.class.getSimpleName();
 
-	private static final String TAG = CaptureActivityHandler.class
-			.getSimpleName();
+	private final CaptureActivity mActivity;
 
-	private final CaptureActivity activity;
-	private final DecodeThread decodeThread;
-	private State state;
-	private final CameraManager cameraManager;
+	private final DecodeThread mDecodeThread;
+
+	private State mState;
+
+	private final CameraManager mCameraManager;
 
 	private enum State {
 		PREVIEW, SUCCESS, DONE
 	}
 
-	public CaptureActivityHandler(CaptureActivity activity,
-			Collection<BarcodeFormat> decodeFormats,
-			Map<DecodeHintType, ?> baseHints, String characterSet,
-			CameraManager cameraManager) {
-		this.activity = activity;
-		decodeThread = new DecodeThread(activity, decodeFormats, baseHints,
-				characterSet, new ViewfinderResultPointCallback(
-						activity.getViewfinderView()));
-		decodeThread.start();
-		state = State.SUCCESS;
+	public CaptureActivityHandler(CaptureActivity activity, Collection<BarcodeFormat> decodeFormats, Map<DecodeHintType, ?> baseHints, String characterSet, CameraManager cameraManager) {
+		this.mActivity = activity;
+		mDecodeThread = new DecodeThread(activity, decodeFormats, baseHints, characterSet, new ViewfinderResultPointCallback(activity.getViewfinderView()));
+		mDecodeThread.start();
+		mState = State.SUCCESS;
 
 		// Start ourselves capturing previews and decoding.
-		this.cameraManager = cameraManager;
+		this.mCameraManager = cameraManager;
 		cameraManager.startPreview();
 		restartPreviewAndDecode();
 	}
@@ -70,34 +66,32 @@ public final class CaptureActivityHandler extends Handler {
 			restartPreviewAndDecode();
 			break;
 		case R.id.decode_succeeded:
-			state = State.SUCCESS;
+			mState = State.SUCCESS;
 			Bundle bundle = message.getData();
 			Bitmap barcode = null;
 			float scaleFactor = 1.0f;
+			
 			if (bundle != null) {
-				byte[] compressedBitmap = bundle
-						.getByteArray(DecodeThread.BARCODE_BITMAP);
+				byte[] compressedBitmap = bundle.getByteArray(DecodeThread.BARCODE_BITMAP);
+				
 				if (compressedBitmap != null) {
-					barcode = BitmapFactory.decodeByteArray(compressedBitmap,
-							0, compressedBitmap.length, null);
+					barcode = BitmapFactory.decodeByteArray(compressedBitmap, 0, compressedBitmap.length, null);
 					// Mutable copy:
 					barcode = barcode.copy(Bitmap.Config.ARGB_8888, true);
 				}
-				scaleFactor = bundle
-						.getFloat(DecodeThread.BARCODE_SCALED_FACTOR);
+				scaleFactor = bundle.getFloat(DecodeThread.BARCODE_SCALED_FACTOR);
 			}
-			activity.handleDecode((Result) message.obj, barcode, scaleFactor);
+			mActivity.handleDecode((Result) message.obj, barcode, scaleFactor);
 			break;
 		case R.id.decode_failed:
 			// We're decoding as fast as possible, so when one decode fails,
 			// start another.
-			state = State.PREVIEW;
-			cameraManager.requestPreviewFrame(decodeThread.getHandler(),
-					R.id.decode);
+			mState = State.PREVIEW;
+			mCameraManager.requestPreviewFrame(mDecodeThread.getHandler(), R.id.decode);
 			break;
 		case R.id.return_scan_result:
-			activity.setResult(Activity.RESULT_OK, (Intent) message.obj);
-			activity.finish();
+			mActivity.setResult(Activity.RESULT_OK, (Intent) message.obj);
+			mActivity.finish();
 			break;
 		case R.id.launch_product_query:
 			String url = (String) message.obj;
@@ -106,25 +100,23 @@ public final class CaptureActivityHandler extends Handler {
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
 			intent.setData(Uri.parse(url));
 
-			ResolveInfo resolveInfo = activity.getPackageManager()
-					.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+			ResolveInfo resolveInfo = mActivity.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
 			String browserPackageName = null;
+			
 			if (resolveInfo != null && resolveInfo.activityInfo != null) {
 				browserPackageName = resolveInfo.activityInfo.packageName;
 				Log.d(TAG, "Using browser in package " + browserPackageName);
 			}
 
 			// Needed for default Android browser / Chrome only apparently
-			if ("com.android.browser".equals(browserPackageName)
-					|| "com.android.chrome".equals(browserPackageName)) {
+			if ("com.android.browser".equals(browserPackageName) || "com.android.chrome".equals(browserPackageName)) {
 				intent.setPackage(browserPackageName);
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				intent.putExtra(Browser.EXTRA_APPLICATION_ID,
-						browserPackageName);
+				intent.putExtra(Browser.EXTRA_APPLICATION_ID, browserPackageName);
 			}
 
 			try {
-				activity.startActivity(intent);
+				mActivity.startActivity(intent);
 			} catch (ActivityNotFoundException ignored) {
 				Log.w(TAG, "Can't find anything to handle VIEW of URI " + url);
 			}
@@ -133,14 +125,15 @@ public final class CaptureActivityHandler extends Handler {
 	}
 
 	public void quitSynchronously() {
-		state = State.DONE;
-		cameraManager.stopPreview();
-		Message quit = Message.obtain(decodeThread.getHandler(), R.id.quit);
+		mState = State.DONE;
+		mCameraManager.stopPreview();
+		Message quit = Message.obtain(mDecodeThread.getHandler(), R.id.quit);
 		quit.sendToTarget();
+		
 		try {
 			// Wait at most half a second; should be enough time, and onPause()
 			// will timeout quickly
-			decodeThread.join(500L);
+			mDecodeThread.join(500L);
 		} catch (InterruptedException e) {
 			// continue
 		}
@@ -151,11 +144,10 @@ public final class CaptureActivityHandler extends Handler {
 	}
 
 	private void restartPreviewAndDecode() {
-		if (state == State.SUCCESS) {
-			state = State.PREVIEW;
-			cameraManager.requestPreviewFrame(decodeThread.getHandler(),
-					R.id.decode);
-			activity.drawViewfinder();
+		if (mState == State.SUCCESS) {
+			mState = State.PREVIEW;
+			mCameraManager.requestPreviewFrame(mDecodeThread.getHandler(), R.id.decode);
+			mActivity.drawViewfinder();
 		}
 	}
 

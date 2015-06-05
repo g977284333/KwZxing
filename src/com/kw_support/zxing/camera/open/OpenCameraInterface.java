@@ -4,11 +4,9 @@ import android.hardware.Camera;
 import android.util.Log;
 
 public final class OpenCameraInterface {
-
 	private static final String TAG = OpenCameraInterface.class.getName();
 
-	private OpenCameraInterface() {
-	}
+	private OpenCameraInterface() {}
 
 	/** For {@link #open(int)}, means no preference for which camera to open. */
 	public static final int NO_REQUESTED_CAMERA = -1;

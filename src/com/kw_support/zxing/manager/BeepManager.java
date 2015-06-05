@@ -18,44 +18,45 @@ import com.kw_support.zxing.constant.ZXingConfig;
 /**
  * Manages beeps and vibrations for {@link CaptureActivity}.
  */
-public final class BeepManager implements MediaPlayer.OnCompletionListener,
-		MediaPlayer.OnErrorListener, Closeable {
-
+public final class BeepManager implements MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, Closeable {
 	private static final String TAG = BeepManager.class.getSimpleName();
 
 	private static final float BEEP_VOLUME = 0.10f;
 	private static final long VIBRATE_DURATION = 200L;
 
-	private final Activity activity;
-	private MediaPlayer mediaPlayer;
-	private boolean playBeep;
-	private boolean vibrate;
+	private final Activity mActivity;
+
+	private MediaPlayer mMediaPlayer;
+
+	private boolean mPlayBeep;
+	private boolean mVibrate;
 
 	public BeepManager(Activity activity) {
-		this.activity = activity;
-		this.mediaPlayer = null;
+		this.mActivity = activity;
+		this.mMediaPlayer = null;
 		updatePrefs();
 	}
 
 	public synchronized void updatePrefs() {
-		playBeep = shouldBeep(activity);
-		vibrate = ZXingConfig.VIBRATE;
-		if (playBeep && mediaPlayer == null) {
+		mPlayBeep = shouldBeep(mActivity);
+		mVibrate = ZXingConfig.VIBRATE;
+
+		if (mPlayBeep && mMediaPlayer == null) {
 			// The volume on STREAM_SYSTEM is not adjustable, and users found it
 			// too loud,
 			// so we now play on the music stream.
-			activity.setVolumeControlStream(AudioManager.STREAM_MUSIC);
-			mediaPlayer = buildMediaPlayer(activity);
+			mActivity.setVolumeControlStream(AudioManager.STREAM_MUSIC);
+			mMediaPlayer = buildMediaPlayer(mActivity);
 		}
 	}
 
 	public synchronized void playBeepSoundAndVibrate() {
-		if (playBeep && mediaPlayer != null) {
-			mediaPlayer.start();
+		if (mPlayBeep && mMediaPlayer != null) {
+			mMediaPlayer.start();
 		}
-		if (vibrate) {
-			Vibrator vibrator = (Vibrator) activity
-					.getSystemService(Context.VIBRATOR_SERVICE);
+
+		if (mVibrate) {
+			Vibrator vibrator = (Vibrator) mActivity.getSystemService(Context.VIBRATOR_SERVICE);
 			vibrator.vibrate(VIBRATE_DURATION);
 		}
 	}
@@ -64,8 +65,8 @@ public final class BeepManager implements MediaPlayer.OnCompletionListener,
 		boolean shouldPlayBeep = ZXingConfig.VIBRATE;
 		if (shouldPlayBeep) {
 			// See if sound settings overrides this
-			AudioManager audioService = (AudioManager) activity
-					.getSystemService(Context.AUDIO_SERVICE);
+			AudioManager audioService = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
+
 			if (audioService.getRingerMode() != AudioManager.RINGER_MODE_NORMAL) {
 				shouldPlayBeep = false;
 			}
@@ -78,12 +79,12 @@ public final class BeepManager implements MediaPlayer.OnCompletionListener,
 		mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		mediaPlayer.setOnCompletionListener(this);
 		mediaPlayer.setOnErrorListener(this);
+
 		try {
-			AssetFileDescriptor file = activity.getResources()
-					.openRawResourceFd(R.raw.beep);
+			AssetFileDescriptor file = activity.getResources().openRawResourceFd(R.raw.beep);
+
 			try {
-				mediaPlayer.setDataSource(file.getFileDescriptor(),
-						file.getStartOffset(), file.getLength());
+				mediaPlayer.setDataSource(file.getFileDescriptor(), file.getStartOffset(), file.getLength());
 			} finally {
 				file.close();
 			}
@@ -108,11 +109,11 @@ public final class BeepManager implements MediaPlayer.OnCompletionListener,
 		if (what == MediaPlayer.MEDIA_ERROR_SERVER_DIED) {
 			// we are finished, so put up an appropriate error toast if required
 			// and finish
-			activity.finish();
+			mActivity.finish();
 		} else {
 			// possibly media player error, so release and recreate
 			mp.release();
-			mediaPlayer = null;
+			mMediaPlayer = null;
 			updatePrefs();
 		}
 		return true;
@@ -120,9 +121,9 @@ public final class BeepManager implements MediaPlayer.OnCompletionListener,
 
 	@Override
 	public synchronized void close() {
-		if (mediaPlayer != null) {
-			mediaPlayer.release();
-			mediaPlayer = null;
+		if (mMediaPlayer != null) {
+			mMediaPlayer.release();
+			mMediaPlayer = null;
 		}
 	}
 

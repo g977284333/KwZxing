@@ -35,45 +35,25 @@ import com.kw_support.zxing.manager.CaptureActivityHandler;
 import com.kw_support.zxing.manager.InactivityTimer;
 import com.kw_support.zxing.widget.ViewfinderView;
 
-/**
- * This activity opens the camera and does the actual scanning on a background
- * thread. It draws a viewfinder to help the user place the barcode correctly,
- * shows feedback as the image processing is happening, and then overlays the
- * results when a scan is successful.
- * 
- * @author dswitkin@google.com (Daniel Switkin)
- * @author Sean Owen
- */
-public final class CaptureActivity extends Activity implements
-		SurfaceHolder.Callback {
-
+public final class CaptureActivity extends Activity implements SurfaceHolder.Callback {
 	private static final String TAG = CaptureActivity.class.getSimpleName();
 
 	public static final int HISTORY_REQUEST_CODE = 0x0000bacc;
 
 	private CameraManager cameraManager;
-	private CaptureActivityHandler handler;
-	private Result savedResultToShow;
-	private ViewfinderView viewfinderView;
-	private boolean hasSurface;
-	private Collection<BarcodeFormat> decodeFormats;
-	private Map<DecodeHintType, ?> decodeHints;
-	private String characterSet;
-	private InactivityTimer inactivityTimer;
 	private BeepManager beepManager;
 	private AmbientLightManager ambientLightManager;
 
-	public ViewfinderView getViewfinderView() {
-		return viewfinderView;
-	}
+	private CaptureActivityHandler handler;
+	private Result savedResultToShow;
+	private ViewfinderView viewfinderView;
+	private InactivityTimer inactivityTimer;
 
-	public Handler getHandler() {
-		return handler;
-	}
+	private Collection<BarcodeFormat> decodeFormats;
+	private Map<DecodeHintType, ?> decodeHints;
+	private String characterSet;
 
-	public CameraManager getCameraManager() {
-		return cameraManager;
-	}
+	private boolean hasSurface;
 
 	@Override
 	public void onCreate(Bundle icicle) {
@@ -156,15 +136,18 @@ public final class CaptureActivity extends Activity implements
 			handler.quitSynchronously();
 			handler = null;
 		}
+
 		inactivityTimer.onPause();
 		ambientLightManager.stop();
 		beepManager.close();
 		cameraManager.closeDriver();
+
 		if (!hasSurface) {
 			SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
 			SurfaceHolder surfaceHolder = surfaceView.getHolder();
 			surfaceHolder.removeCallback(this);
 		}
+
 		super.onPause();
 	}
 
@@ -216,8 +199,7 @@ public final class CaptureActivity extends Activity implements
 				savedResultToShow = result;
 			}
 			if (savedResultToShow != null) {
-				Message message = Message.obtain(handler,
-						R.id.decode_succeeded, savedResultToShow);
+				Message message = Message.obtain(handler, R.id.decode_succeeded, savedResultToShow);
 				handler.sendMessage(message);
 			}
 			savedResultToShow = null;
@@ -227,8 +209,7 @@ public final class CaptureActivity extends Activity implements
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		if (holder == null) {
-			Log.e(TAG,
-					"*** WARNING *** surfaceCreated() gave us a null surface!");
+			Log.e(TAG, "*** WARNING *** surfaceCreated() gave us a null surface!");
 		}
 		if (!hasSurface) {
 			hasSurface = true;
@@ -242,8 +223,7 @@ public final class CaptureActivity extends Activity implements
 	}
 
 	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 
 	}
 
@@ -264,8 +244,7 @@ public final class CaptureActivity extends Activity implements
 		if (fromLiveScan) {
 			beepManager.playBeepSoundAndVibrate();
 		}
-		Toast.makeText(this, "success：" + rawResult.toString(),
-				Toast.LENGTH_LONG).show();
+		Toast.makeText(this, "success：" + rawResult.toString(), Toast.LENGTH_LONG).show();
 	}
 
 	private void initCamera(SurfaceHolder surfaceHolder) {
@@ -273,8 +252,7 @@ public final class CaptureActivity extends Activity implements
 			throw new IllegalStateException("No SurfaceHolder provided");
 		}
 		if (cameraManager.isOpen()) {
-			Log.w(TAG,
-					"initCamera() while already open -- late SurfaceView callback?");
+			Log.w(TAG, "initCamera() while already open -- late SurfaceView callback?");
 			return;
 		}
 		try {
@@ -282,8 +260,7 @@ public final class CaptureActivity extends Activity implements
 			// Creating the handler starts the preview, which can also throw a
 			// RuntimeException.
 			if (handler == null) {
-				handler = new CaptureActivityHandler(this, decodeFormats,
-						decodeHints, characterSet, cameraManager);
+				handler = new CaptureActivityHandler(this, decodeFormats, decodeHints, characterSet, cameraManager);
 			}
 			decodeOrStoreSavedBitmap(null, null);
 		} catch (IOException ioe) {
@@ -319,5 +296,17 @@ public final class CaptureActivity extends Activity implements
 
 	public void drawViewfinder() {
 		viewfinderView.drawViewfinder();
+	}
+
+	public ViewfinderView getViewfinderView() {
+		return viewfinderView;
+	}
+
+	public Handler getHandler() {
+		return handler;
+	}
+
+	public CameraManager getCameraManager() {
+		return cameraManager;
 	}
 }

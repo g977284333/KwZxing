@@ -26,22 +26,19 @@ public final class DecodeThread extends Thread {
 	public static final String BARCODE_BITMAP = "barcode_bitmap";
 	public static final String BARCODE_SCALED_FACTOR = "barcode_scaled_factor";
 
-	private final CaptureActivity activity;
-	private final Map<DecodeHintType, Object> hints;
-	private Handler handler;
-	private final CountDownLatch handlerInitLatch;
+	private final CaptureActivity mActivity;
+	private final Map<DecodeHintType, Object> mHints;
+	private Handler mHandler;
+	private final CountDownLatch mHandlerInitLatch;
 
-	public DecodeThread(CaptureActivity activity,
-			Collection<BarcodeFormat> decodeFormats,
-			Map<DecodeHintType, ?> baseHints, String characterSet,
-			ResultPointCallback resultPointCallback) {
-
-		this.activity = activity;
-		handlerInitLatch = new CountDownLatch(1);
-
-		hints = new EnumMap<DecodeHintType, Object>(DecodeHintType.class);
+	public DecodeThread(CaptureActivity activity, Collection<BarcodeFormat> decodeFormats, Map<DecodeHintType, ?> baseHints, String characterSet, ResultPointCallback resultPointCallback) {
+		
+		this.mActivity = activity;
+		mHandlerInitLatch = new CountDownLatch(1);
+		mHints = new EnumMap<DecodeHintType, Object>(DecodeHintType.class);
+		
 		if (baseHints != null) {
-			hints.putAll(baseHints);
+			mHints.putAll(baseHints);
 		}
 
 		// The prefs can't change while the thread is running, so pick them up
@@ -67,30 +64,29 @@ public final class DecodeThread extends Thread {
 				decodeFormats.addAll(DecodeFormatManager.PDF417_FORMATS);
 			}
 		}
-		hints.put(DecodeHintType.POSSIBLE_FORMATS, decodeFormats);
+		mHints.put(DecodeHintType.POSSIBLE_FORMATS, decodeFormats);
 
 		if (characterSet != null) {
-			hints.put(DecodeHintType.CHARACTER_SET, characterSet);
+			mHints.put(DecodeHintType.CHARACTER_SET, characterSet);
 		}
-		hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK,
-				resultPointCallback);
-		Log.i("DecodeThread", "Hints: " + hints);
+		mHints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, resultPointCallback);
+		Log.i("DecodeThread", "Hints: " + mHints);
 	}
 
 	public Handler getHandler() {
 		try {
-			handlerInitLatch.await();
+			mHandlerInitLatch.await();
 		} catch (InterruptedException ie) {
 			// continue?
 		}
-		return handler;
+		return mHandler;
 	}
 
 	@Override
 	public void run() {
 		Looper.prepare();
-		handler = new DecodeHandler(activity, hints);
-		handlerInitLatch.countDown();
+		mHandler = new DecodeHandler(mActivity, mHints);
+		mHandlerInitLatch.countDown();
 		Looper.loop();
 	}
 

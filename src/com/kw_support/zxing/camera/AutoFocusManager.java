@@ -12,41 +12,41 @@ import android.os.Build;
 import android.util.Log;
 
 final class AutoFocusManager implements Camera.AutoFocusCallback {
-
 	private static final String TAG = AutoFocusManager.class.getSimpleName();
 
 	private static final long AUTO_FOCUS_INTERVAL_MS = 2000L;
+
 	private static final Collection<String> FOCUS_MODES_CALLING_AF;
+
 	static {
 		FOCUS_MODES_CALLING_AF = new ArrayList<String>(2);
 		FOCUS_MODES_CALLING_AF.add(Camera.Parameters.FOCUS_MODE_AUTO);
 		FOCUS_MODES_CALLING_AF.add(Camera.Parameters.FOCUS_MODE_MACRO);
 	}
 
-	private boolean stopped;
-	private boolean focusing;
-	private final boolean useAutoFocus;
-	private final Camera camera;
-	private AsyncTask<?, ?, ?> outstandingTask;
+	private boolean mStopped;
+	private boolean mFocusing;
+	private final boolean mUseAutoFocus;
+	private final Camera mCamera;
+	private AsyncTask<?, ?, ?> mOutstandingTask;
 
 	public AutoFocusManager(Context context, Camera camera) {
-		this.camera = camera;
+		this.mCamera = camera;
 		String currentFocusMode = camera.getParameters().getFocusMode();
-		useAutoFocus = FOCUS_MODES_CALLING_AF.contains(currentFocusMode);
-		Log.i(TAG, "Current focus mode '" + currentFocusMode
-				+ "'; use auto focus? " + useAutoFocus);
+		mUseAutoFocus = FOCUS_MODES_CALLING_AF.contains(currentFocusMode);
+		Log.i(TAG, "Current focus mode '" + currentFocusMode + "'; use auto focus? " + mUseAutoFocus);
 		start();
 	}
 
 	@Override
 	public synchronized void onAutoFocus(boolean success, Camera theCamera) {
-		focusing = false;
+		mFocusing = false;
 		autoFocusAgainLater();
 	}
 
 	@SuppressLint("NewApi")
 	private synchronized void autoFocusAgainLater() {
-		if (!stopped && outstandingTask == null) {
+		if (!mStopped && mOutstandingTask == null) {
 			AutoFocusTask newTask = new AutoFocusTask();
 			try {
 				if (Build.VERSION.SDK_INT >= 11) {
@@ -54,7 +54,7 @@ final class AutoFocusManager implements Camera.AutoFocusCallback {
 				} else {
 					newTask.execute();
 				}
-				outstandingTask = newTask;
+				mOutstandingTask = newTask;
 			} catch (RejectedExecutionException ree) {
 				Log.w(TAG, "Could not request auto focus", ree);
 			}
@@ -62,12 +62,12 @@ final class AutoFocusManager implements Camera.AutoFocusCallback {
 	}
 
 	public synchronized void start() {
-		if (useAutoFocus) {
-			outstandingTask = null;
-			if (!stopped && !focusing) {
+		if (mUseAutoFocus) {
+			mOutstandingTask = null;
+			if (!mStopped && !mFocusing) {
 				try {
-					camera.autoFocus(this);
-					focusing = true;
+					mCamera.autoFocus(this);
+					mFocusing = true;
 				} catch (RuntimeException re) {
 					// Have heard RuntimeException reported in Android 4.0.x+;
 					// continue?
@@ -80,21 +80,21 @@ final class AutoFocusManager implements Camera.AutoFocusCallback {
 	}
 
 	private synchronized void cancelOutstandingTask() {
-		if (outstandingTask != null) {
-			if (outstandingTask.getStatus() != AsyncTask.Status.FINISHED) {
-				outstandingTask.cancel(true);
+		if (mOutstandingTask != null) {
+			if (mOutstandingTask.getStatus() != AsyncTask.Status.FINISHED) {
+				mOutstandingTask.cancel(true);
 			}
-			outstandingTask = null;
+			mOutstandingTask = null;
 		}
 	}
 
 	public synchronized void stop() {
-		stopped = true;
-		if (useAutoFocus) {
+		mStopped = true;
+		if (mUseAutoFocus) {
 			cancelOutstandingTask();
 			// Doesn't hurt to call this even if not focusing
 			try {
-				camera.cancelAutoFocus();
+				mCamera.cancelAutoFocus();
 			} catch (RuntimeException re) {
 				// Have heard RuntimeException reported in Android 4.0.x+;
 				// continue?
