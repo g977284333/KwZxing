@@ -15,5 +15,6 @@
     <color name="viewfinder_corner">#ff00ff00</color>
     <color name="viewfinder_main_line">#ff00ff00</color>
     <color name="viewfinder_main_line_edge">#2200ff00</color>
+    <color name="viewfinder_hint_text">#ffffffff</color>
 
 </resources>

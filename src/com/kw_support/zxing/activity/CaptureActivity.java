@@ -9,15 +9,16 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -54,20 +55,24 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 	private String characterSet;
 
 	private boolean hasSurface;
-
+	private boolean isOpenedSplash;
+	
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 
 		Window window = getWindow();
 		window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setContentView(R.layout.capture);
+		setContentView(R.layout.activity_capture);
 
 		hasSurface = false;
 		inactivityTimer = new InactivityTimer(this);
 		beepManager = new BeepManager(this);
 		ambientLightManager = new AmbientLightManager(this);
 
+		
+		findViewById(R.id.btn_zxing_back).setOnClickListener(mBtnBackOnClickListener);
+		findViewById(R.id.btn_zxing_light).setOnClickListener(mSplashBtnOnClickListener);
 	}
 
 	@Override
@@ -116,7 +121,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
 		decodeFormats = null;
 		characterSet = null;
-
 	}
 
 	private int getCurrentOrientation() {
@@ -156,37 +160,37 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 		inactivityTimer.shutdown();
 		super.onDestroy();
 	}
-
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		switch (keyCode) {
-		case KeyEvent.KEYCODE_BACK:
-			break;
-		case KeyEvent.KEYCODE_FOCUS:
-		case KeyEvent.KEYCODE_CAMERA:
-			// Handle these events so they don't launch the Camera app
-			return true;
-			// Use volume up/down to turn on light
-		case KeyEvent.KEYCODE_VOLUME_DOWN:
-			cameraManager.setTorch(false);
-			return true;
-		case KeyEvent.KEYCODE_VOLUME_UP:
-			cameraManager.setTorch(true);
-			return true;
+	
+	private OnClickListener mBtnBackOnClickListener = new OnClickListener() {
+		
+		@Override
+		public void onClick(View v) {
+			finish();
 		}
-		return super.onKeyDown(keyCode, event);
-	}
+	};
+	
+	private OnClickListener mSplashBtnOnClickListener = new OnClickListener() {
+		
+		@Override
+		public void onClick(View v) {
+			openOrCloseSplash();
+		}
+	};
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if (resultCode == RESULT_OK) {
-			if (requestCode == HISTORY_REQUEST_CODE) {
-				// int itemNumber =
-				// intent.getIntExtra(Intents.History.ITEM_NUMBER, -1);
-				// if (itemNumber >= 0) {
-				// decodeOrStoreSavedBitmap(null, historyItem.getResult());
-				// }
-			}
+			
+		}
+	}
+	
+	private void openOrCloseSplash() {
+		if(isOpenedSplash) {
+			cameraManager.setTorch(false);
+			isOpenedSplash = false;
+		} else {
+			cameraManager.setTorch(true);
+			isOpenedSplash = true;
 		}
 	}
 
@@ -244,7 +248,36 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 		if (fromLiveScan) {
 			beepManager.playBeepSoundAndVibrate();
 		}
+		dealWithResult(rawResult);
+	}
+
+	private void dealWithResult(Result rawResult) {
 		Toast.makeText(this, "success：" + rawResult.toString(), Toast.LENGTH_LONG).show();
+		String Barcode = rawResult.getBarcodeFormat().toString();
+		String Text = rawResult.getText().toString();
+		if ("QR_CODE".equals(Barcode) || "DATA_MATRIX".equals(Barcode)) {
+			if (Text.length() > 7) {
+				String s = Text.substring(0, 7);
+				if ("http://".equals(s)) {
+					Intent viewIntent = new Intent(
+							"android.intent.action.VIEW", Uri.parse(Text));
+					startActivity(viewIntent);
+
+				} else {
+				// to do something
+
+				}
+			}else {
+				// to do something
+
+
+			}
+
+		} else if ("EAN_13".equals(Barcode)) {
+			// to do something
+
+
+		}
 	}
 
 	private void initCamera(SurfaceHolder surfaceHolder) {

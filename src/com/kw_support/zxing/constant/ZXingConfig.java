@@ -2,24 +2,24 @@ package com.kw_support.zxing.constant;
 
 public class ZXingConfig {
 	
-	public static final boolean DISABLE_AUTO_ORIENTATION = false;	// Ã»ÓĞ×Ô¶¯Ğı×ª
-	public static final boolean FLASH_LIGHT = false;				// ÉÁ¹âµÆ
-	public static final boolean AUTO_FOCUS = true;					// ×Ô¶¯¶Ô½¹
-	public static final boolean DISABLE_CONTINUOUS_FOCUS = true;	//¡¡Ã»ÓĞ³ÖĞø¹Ø×¢
-	public static final boolean INVERT_SCAN = false;				// ·´ÏòÉ¨Ãè
-	public static final boolean DISABLE_BARCODE_SCENE_MODE = true;	// Ã»ÓĞÌõĞÎÂëµÄ³¡¾°Ä£Ê½
-	public static final boolean DISABLE_METERING = true;			// ÎŞ¼ÆÁ¿
-	public static final boolean DISABLE_EXPOSURE = true;			// ÎŞ¼ÆÁ¿
-	public static final boolean VIBRATE = false;					// Õğ¶¯
+	public static final boolean DISABLE_AUTO_ORIENTATION = false;	// æ²¡æœ‰è‡ªåŠ¨æ—‹è½¬
+	public static final boolean FLASH_LIGHT = false;				// é—ªå…‰ç¯
+	public static final boolean AUTO_FOCUS = true;					// è‡ªåŠ¨å¯¹ç„¦
+	public static final boolean DISABLE_CONTINUOUS_FOCUS = true;	// æ²¡æœ‰æŒç»­å…³æ³¨
+	public static final boolean INVERT_SCAN = false;				// åå‘æ‰«æ
+	public static final boolean DISABLE_BARCODE_SCENE_MODE = true;	// æ²¡æœ‰æ¡å½¢ç çš„åœºæ™¯æ¨¡å¼
+	public static final boolean DISABLE_METERING = true;			// æ— è®¡é‡
+	public static final boolean DISABLE_EXPOSURE = true;			// æ— æ›å…‰
+	public static final boolean VIBRATE = false;					// éœ‡åŠ¨
 	
-	public static final boolean DECODE_1D_PRODUCT = true;			// 1D²úÆ·
-	public static final boolean DECODE_1D_INDUSTRIAL = true;		// 1D¹¤Òµ
-	public static final boolean DECODE_QR = true;					// QRÂë
-	public static final boolean DECODE_DATA_MATRIX = true;			// DMÂë
-	public static final boolean DECODE_AZTEC = false;				// °¢×ÈÌ¨¿ËÈË
+	public static final boolean DECODE_1D_PRODUCT = true;			// 1Däº§å“
+	public static final boolean DECODE_1D_INDUSTRIAL = true;		// 1Då·¥ä¸š
+	public static final boolean DECODE_QR = true;					// QRç 
+	public static final boolean DECODE_DATA_MATRIX = true;			// DMç 
+	public static final boolean DECODE_AZTEC = false;				// é˜¿å…¹å°å…‹äºº
 	public static final boolean DECODE_PDF417 = false;				// PDF417
 	
-	public static final String FLIGHT_MODE = FlightMode.OFF;		// ÉÁ¹âµÆÄ£Ê½
+	public static final String FLIGHT_MODE = FlightMode.OFF;		// é—ªå…‰ç¯æ¨¡å¼
 	
 	public interface FlightMode {
 		String ON = "on";

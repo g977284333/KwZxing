@@ -25,6 +25,7 @@ public final class R {
         public static final int status_text=0x7f050007;
         public static final int transparent=0x7f050008;
         public static final int viewfinder_corner=0x7f05000b;
+        public static final int viewfinder_hint_text=0x7f05000e;
         public static final int viewfinder_laser=0x7f050009;
         public static final int viewfinder_main_line=0x7f05000c;
         public static final int viewfinder_main_line_edge=0x7f05000d;
@@ -44,22 +45,28 @@ public final class R {
         public static final int activity_vertical_margin=0x7f060001;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
+        public static final int btn_filter_bg=0x7f020000;
+        public static final int btn_navigation_capture=0x7f020001;
+        public static final int btn_navigation_white_back=0x7f020002;
+        public static final int btn_navigation_white_light=0x7f020003;
+        public static final int ic_launcher=0x7f020004;
     }
     public static final class id {
+        public static final int btn_zxing_back=0x7f070007;
+        public static final int btn_zxing_light=0x7f070008;
         public static final int decode=0x7f070000;
         public static final int decode_failed=0x7f070001;
         public static final int decode_succeeded=0x7f070002;
         public static final int launch_product_query=0x7f070003;
-        public static final int preview_view=0x7f070007;
+        public static final int preview_view=0x7f070009;
         public static final int quit=0x7f070004;
         public static final int restart_preview=0x7f070005;
         public static final int return_scan_result=0x7f070006;
-        public static final int viewfinder_view=0x7f070008;
+        public static final int viewfinder_view=0x7f07000a;
     }
     public static final class layout {
-        public static final int activity_main=0x7f030000;
-        public static final int capture=0x7f030001;
+        public static final int activity_capture=0x7f030000;
+        public static final int activity_main=0x7f030001;
     }
     public static final class menu {
         public static final int main=0x7f0a0000;

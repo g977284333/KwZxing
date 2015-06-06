@@ -8,5 +8,7 @@
     <item name="quit" type="id"/>
     <item name="restart_preview" type="id"/>
     <item name="return_scan_result" type="id"/>
+    <item name="btn_zxing_back" type="id"/>
+    <item name="btn_zxing_light" type="id"/>
 
 </resources>

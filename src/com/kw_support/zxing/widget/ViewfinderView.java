@@ -8,15 +8,18 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
+import android.text.Layout.Alignment;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 
 import com.google.zxing.ResultPoint;
 import com.kw_support.R;
+import com.kw_support.zxing.Utils;
 import com.kw_support.zxing.camera.CameraManager;
 
 /**
@@ -29,15 +32,16 @@ import com.kw_support.zxing.camera.CameraManager;
 public final class ViewfinderView extends View {
 
 	private static final int[] SCANNER_ALPHA = { 0, 64, 128, 192, 255, 192, 128, 64 };
-	private static final long ANIMATION_DELAY = 80L;
+	private static final long ANIMATION_DELAY = 100L;
 	private static final int CURRENT_POINT_OPACITY = 0xA0;
 	private static final int MAX_RESULT_POINTS = 20;
 	private static final int POINT_SIZE = 6;
+	private static final int TEXT_SIZE = 12;
 
 	private CameraManager mCameraManager;
 
 	private final Paint mPaint;
-	private Paint textPaint;
+	private TextPaint mTextPaint;
 
 	private Bitmap mResultBitmap;
 
@@ -46,6 +50,7 @@ public final class ViewfinderView extends View {
 	private final int mCornerColor;
 	private int mScannerAlpha;
 	private int i = 0;
+	private float TEXT_PADDING_TOP; 
 
 	private List<ResultPoint> mPossibleResultPoints;
 
@@ -61,10 +66,13 @@ public final class ViewfinderView extends View {
 
 		// Initialize these once for performance rather than calling them every
 		// time in onDraw().
+		Resources resources = getResources();
+
 		mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-		textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		Resources resources = getResources();
+		mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+		mTextPaint.setColor(resources.getColor(R.color.viewfinder_hint_text));
+		mTextPaint.setTextSize(Utils.sp2px(context, TEXT_SIZE));
 
 		mRect = new Rect();
 		int left = context.getResources().getColor(R.color.viewfinder_main_line_edge);
@@ -76,6 +84,7 @@ public final class ViewfinderView extends View {
 		mResultColor = resources.getColor(R.color.result_view);
 		mCornerColor = resources.getColor(R.color.viewfinder_corner);
 		mScannerAlpha = 0;
+		TEXT_PADDING_TOP = Utils.dip2px(context, 10);
 		mPossibleResultPoints = new ArrayList<ResultPoint>(5);
 	}
 
@@ -127,15 +136,8 @@ public final class ViewfinderView extends View {
 			canvas.drawRect(frame.right, frame.bottom - 20, frame.right + 10, frame.bottom + 10, mPaint);
 			canvas.drawRect(frame.right - 20, frame.bottom, frame.right + 10, frame.bottom + 10, mPaint);
 
-			int middle = frame.width() / 2;
-			textPaint.setTextSize(20);
-			textPaint.setColor(Color.WHITE);
-			String text = getResources().getString(R.string.dimension_content);
-			canvas.drawText(text, middle - 112, frame.bottom + 60, textPaint);
-
 			// Draw a red "laser scanner" line through the middle to show
 			// decoding is active
-			mPaint.setColor(Color.GREEN);
 			mPaint.setAlpha(SCANNER_ALPHA[mScannerAlpha]);
 			mScannerAlpha = (mScannerAlpha + 1) % SCANNER_ALPHA.length;
 
@@ -163,6 +165,10 @@ public final class ViewfinderView extends View {
 				float left = frame.left + (frame.right - frame.left) / 2 - 2;
 				canvas.drawRect(left, frame.top, left + 2, frame.bottom - 2, mPaint);
 			}
+			
+			StaticLayout layout = new StaticLayout(getResources().getString(R.string.dimension_content), mTextPaint, frame.right - frame.left, Alignment.ALIGN_CENTER, 1.0F, 0.0F, true);
+			canvas.translate(frame.left, (float) (frame.bottom + TEXT_PADDING_TOP)); 
+			layout.draw(canvas);
 
 			// Request another update at the animation interval, but only
 			// repaint the laser line,
