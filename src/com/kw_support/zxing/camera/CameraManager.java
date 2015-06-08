@@ -213,7 +213,7 @@ public final class CameraManager {
 			}
 
 			DisplayMetrics metrics = mContext.getResources().getDisplayMetrics();
-			int width = (int) (metrics.widthPixels * 0.65);
+			int width = (int) (metrics.widthPixels * 0.6);
 			int height = (int) (width * 0.9);
 
 			int leftOffset = (screenResolution.x - width) / 2;

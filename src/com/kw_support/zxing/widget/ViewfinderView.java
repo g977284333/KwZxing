@@ -19,7 +19,6 @@ import android.view.View;
 
 import com.google.zxing.ResultPoint;
 import com.kw_support.R;
-import com.kw_support.zxing.Utils;
 import com.kw_support.zxing.camera.CameraManager;
 
 /**
@@ -59,6 +58,8 @@ public final class ViewfinderView extends View {
 	private Rect mRect;
 
 	private GradientDrawable mDrawable;
+	
+	private float mDensity;
 
 	// This constructor is used when the class is built from an XML resource.
 	public ViewfinderView(Context context, AttributeSet attrs) {
@@ -67,12 +68,14 @@ public final class ViewfinderView extends View {
 		// Initialize these once for performance rather than calling them every
 		// time in onDraw().
 		Resources resources = getResources();
+		
+		mDensity = resources.getDisplayMetrics().density;
 
 		mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
 		mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
 		mTextPaint.setColor(resources.getColor(R.color.viewfinder_hint_text));
-		mTextPaint.setTextSize(Utils.sp2px(context, TEXT_SIZE));
+		mTextPaint.setTextSize((int)(TEXT_SIZE * mDensity + 0.5f));
 
 		mRect = new Rect();
 		int left = context.getResources().getColor(R.color.viewfinder_main_line_edge);
@@ -84,13 +87,15 @@ public final class ViewfinderView extends View {
 		mResultColor = resources.getColor(R.color.result_view);
 		mCornerColor = resources.getColor(R.color.viewfinder_corner);
 		mScannerAlpha = 0;
-		TEXT_PADDING_TOP = Utils.dip2px(context, 10);
+		TEXT_PADDING_TOP = 10 * mDensity + 0.5f;
 		mPossibleResultPoints = new ArrayList<ResultPoint>(5);
 	}
 
 	public void setCameraManager(CameraManager cameraManager) {
 		this.mCameraManager = cameraManager;
 	}
+	
+	
 
 	@SuppressLint("DrawAllocation")
 	@Override
