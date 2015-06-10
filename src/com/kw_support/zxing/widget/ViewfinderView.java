@@ -9,10 +9,9 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
 import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
-import android.text.Layout.Alignment;
-import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
@@ -37,19 +36,22 @@ public final class ViewfinderView extends View {
 	private static final int POINT_SIZE = 6;
 	private static final int TEXT_SIZE = 12;
 
-	private CameraManager mCameraManager;
-
-	private final Paint mPaint;
-	private TextPaint mTextPaint;
-
-	private Bitmap mResultBitmap;
-
 	private final int mMaskColor;
 	private final int mResultColor;
 	private final int mCornerColor;
+	
 	private int mScannerAlpha;
-	private int i = 0;
-	private float TEXT_PADDING_TOP; 
+	private int mDrawableLineBaseLoc = 0;
+	
+	private CameraManager mCameraManager;
+
+	private final Paint mPaint;
+	private final TextPaint mTextPaint;
+
+	private Bitmap mResultBitmap;
+
+	private final float TEXT_PADDING_TOP; 
+	private float mDensity;
 
 	private List<ResultPoint> mPossibleResultPoints;
 
@@ -59,7 +61,7 @@ public final class ViewfinderView extends View {
 
 	private GradientDrawable mDrawable;
 	
-	private float mDensity;
+	private String mTextHint;
 
 	// This constructor is used when the class is built from an XML resource.
 	public ViewfinderView(Context context, AttributeSet attrs) {
@@ -76,8 +78,10 @@ public final class ViewfinderView extends View {
 		mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
 		mTextPaint.setColor(resources.getColor(R.color.viewfinder_hint_text));
 		mTextPaint.setTextSize((int)(TEXT_SIZE * mDensity + 0.5f));
+		mTextPaint.setTextAlign(Align.CENTER);
 
 		mRect = new Rect();
+		
 		int left = context.getResources().getColor(R.color.viewfinder_main_line_edge);
 		int center = context.getResources().getColor(R.color.viewfinder_main_line);
 		int right = context.getResources().getColor(R.color.viewfinder_main_line_edge);
@@ -86,8 +90,12 @@ public final class ViewfinderView extends View {
 		mMaskColor = resources.getColor(R.color.viewfinder_mask);
 		mResultColor = resources.getColor(R.color.result_view);
 		mCornerColor = resources.getColor(R.color.viewfinder_corner);
+		
 		mScannerAlpha = 0;
-		TEXT_PADDING_TOP = 10 * mDensity + 0.5f;
+		TEXT_PADDING_TOP = 20 * mDensity + 0.5f;
+		
+		mTextHint = resources.getString(R.string.dimension_content);
+		
 		mPossibleResultPoints = new ArrayList<ResultPoint>(5);
 	}
 
@@ -149,7 +157,7 @@ public final class ViewfinderView extends View {
 			// 上下走的线
 			if (laserLinePortrait) {
 
-				if ((i += 5) < frame.bottom - frame.top) {
+				if ((mDrawableLineBaseLoc += 5) < frame.bottom - frame.top) {
 					/*
 					 * canvas.drawRect(frame.left + 2, frame.top - 2 + i,
 					 * frame.right - 1, frame.top + 2 + i, paint);
@@ -158,12 +166,12 @@ public final class ViewfinderView extends View {
 					mDrawable.setShape(GradientDrawable.RECTANGLE);
 					mDrawable.setGradientType(GradientDrawable.LINEAR_GRADIENT);
 					setCornerRadii(mDrawable, r, r, r, r);
-					mRect.set(frame.left + 2, frame.top - 3 + i, frame.right - 1, frame.top + 3 + i);
+					mRect.set(frame.left + 2, frame.top - 3 + mDrawableLineBaseLoc, frame.right - 1, frame.top + 3 + mDrawableLineBaseLoc);
 					mDrawable.setBounds(mRect);
 					mDrawable.draw(canvas);
 					invalidate();
 				} else {
-					i = 0;
+					mDrawableLineBaseLoc = 0;
 				}
 
 			} else {
@@ -171,9 +179,7 @@ public final class ViewfinderView extends View {
 				canvas.drawRect(left, frame.top, left + 2, frame.bottom - 2, mPaint);
 			}
 			
-			StaticLayout layout = new StaticLayout(getResources().getString(R.string.dimension_content), mTextPaint, frame.right - frame.left, Alignment.ALIGN_CENTER, 1.0F, 0.0F, true);
-			canvas.translate(frame.left, (float) (frame.bottom + TEXT_PADDING_TOP)); 
-			layout.draw(canvas);
+			canvas.drawText(mTextHint, frame.centerX(), frame.bottom + TEXT_PADDING_TOP, mTextPaint);
 
 			// Request another update at the animation interval, but only
 			// repaint the laser line,
