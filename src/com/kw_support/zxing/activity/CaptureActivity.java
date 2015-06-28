@@ -1,18 +1,25 @@
 package com.kw_support.zxing.activity;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.Map;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -24,11 +31,16 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.zxing.BarcodeFormat;
+import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.ReaderException;
 import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
 import com.kw_support.R;
 import com.kw_support.zxing.camera.CameraManager;
 import com.kw_support.zxing.constant.ZXingConfig;
+import com.kw_support.zxing.decode.RGBLuminanceSource;
 import com.kw_support.zxing.interfaces.FinishListener;
 import com.kw_support.zxing.manager.AmbientLightManager;
 import com.kw_support.zxing.manager.BeepManager;
@@ -44,11 +56,13 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 	private CameraManager cameraManager;
 	private BeepManager beepManager;
 	private AmbientLightManager ambientLightManager;
+	private MultiFormatReader multiFormatReader;
 
 	private CaptureActivityHandler handler;
 	private Result savedResultToShow;
 	private ViewfinderView viewfinderView;
 	private InactivityTimer inactivityTimer;
+	private ProgressDialog mLoadingDialog;
 
 	private Collection<BarcodeFormat> decodeFormats;
 	private Map<DecodeHintType, ?> decodeHints;
@@ -56,7 +70,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
 	private boolean hasSurface;
 	private boolean isOpenedSplash;
-	
+
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
@@ -70,7 +84,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 		beepManager = new BeepManager(this);
 		ambientLightManager = new AmbientLightManager(this);
 
-		
 		findViewById(R.id.btn_zxing_back).setOnClickListener(mBtnBackOnClickListener);
 		findViewById(R.id.btn_zxing_light).setOnClickListener(mSplashBtnOnClickListener);
 	}
@@ -160,17 +173,17 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 		inactivityTimer.shutdown();
 		super.onDestroy();
 	}
-	
+
 	private OnClickListener mBtnBackOnClickListener = new OnClickListener() {
-		
+
 		@Override
 		public void onClick(View v) {
 			finish();
 		}
 	};
-	
+
 	private OnClickListener mSplashBtnOnClickListener = new OnClickListener() {
-		
+
 		@Override
 		public void onClick(View v) {
 			openOrCloseSplash();
@@ -180,12 +193,56 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if (resultCode == RESULT_OK) {
-			
+			if (requestCode == 1) {
+				Uri uri = intent.getData();
+
+				if (uri == null) {
+					return;
+				}
+
+				try {
+					String[] projStrings = { MediaStore.Images.Media.DATA };
+					Cursor cursor = getContentResolver().query(uri, projStrings, null, null, null);
+					int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+					cursor.moveToFirst();
+					final String path = cursor.getString(columnIndex);
+
+					if (TextUtils.isEmpty(path)) {
+						return;
+					}
+
+					Log.d(TAG, "ImagePath: " + path);
+					
+					
+					mLoadingDialog = new ProgressDialog(CaptureActivity.this);
+					mLoadingDialog.setMessage("稍后...");
+					mLoadingDialog.setCancelable(false);
+					mLoadingDialog.show();
+					
+					new Thread(new Runnable() {
+						
+						@Override
+						public void run() {
+							Result result = scanningImage(path);
+							if(result == null) {
+								mLoadingDialog.dismiss();
+								// to do show failed
+							} else {
+								dealWithResult(result);
+								mLoadingDialog.dismiss();
+							}
+						}
+					}).start();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+
 		}
 	}
-	
+
 	private void openOrCloseSplash() {
-		if(isOpenedSplash) {
+		if (isOpenedSplash) {
 			cameraManager.setTorch(false);
 			isOpenedSplash = false;
 		} else {
@@ -259,23 +316,20 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 			if (Text.length() > 7) {
 				String s = Text.substring(0, 7);
 				if ("http://".equals(s)) {
-					Intent viewIntent = new Intent(
-							"android.intent.action.VIEW", Uri.parse(Text));
+					Intent viewIntent = new Intent("android.intent.action.VIEW", Uri.parse(Text));
 					startActivity(viewIntent);
 
 				} else {
-				// to do something
+					// to do something
 
 				}
-			}else {
+			} else {
 				// to do something
-
 
 			}
 
 		} else if ("EAN_13".equals(Barcode)) {
 			// to do something
-
 
 		}
 	}
@@ -342,4 +396,42 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 	public CameraManager getCameraManager() {
 		return cameraManager;
 	}
+	
+	public Result scanningImage(String path) {
+		if(TextUtils.isEmpty(path)){
+			return null;
+		}
+		multiFormatReader = new MultiFormatReader();
+	    
+		//BufferedImage image =null;
+		Hashtable<DecodeHintType, String> hints = new Hashtable<DecodeHintType, String>();
+		hints.put(DecodeHintType.CHARACTER_SET, "UTF8"); 
+		
+		multiFormatReader.setHints(hints);
+		
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		Bitmap scanBitmap = BitmapFactory.decodeFile(path, options);
+		options.inJustDecodeBounds = false; 
+		int sampleSize = (int) (options.outHeight / (float) 200);
+		if (sampleSize <= 0)
+			sampleSize = 1;
+		scanBitmap = BitmapFactory.decodeFile(path, options);
+		
+		RGBLuminanceSource source = new RGBLuminanceSource(scanBitmap);
+		BinaryBitmap bitmap1 = new BinaryBitmap(new HybridBinarizer(source));
+	    try {
+	    	return multiFormatReader.decodeWithState(bitmap1);
+	    } catch (ReaderException re) {
+	      // continue
+	    } finally {
+	      multiFormatReader.reset();
+	    }
+		return null;
+	}
+	public byte[] Bitmap2Bytes(Bitmap bm) {
+		  ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		  bm.compress(Bitmap.CompressFormat.PNG, 100, baos);
+		  return baos.toByteArray();
+	} 
 }

@@ -1,6 +1,8 @@
 package com.kw_support.zxing;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 
 /**
  * @author: gchen
@@ -29,5 +31,13 @@ public class Utils {
 	public static int px2dip(Context context, float pxValue) {
 		final float scale = context.getResources().getDisplayMetrics().density;
 		return (int) (pxValue / scale + 0.5f);
+	}
+
+	public static void openLocalImageGallery(Activity act) {
+		Intent getAlbum = new Intent(Intent.ACTION_GET_CONTENT);
+
+		getAlbum.setType("image/*");
+
+		act.startActivityForResult(getAlbum, 1);
 	}
 }
